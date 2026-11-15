@@ -6,12 +6,19 @@ import Groq from "groq-sdk";
 dotenv.config();
 
 const app = express();
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://frontend-zeta-sandy-26.vercel.app",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    process.env.FRONTEND_URL
-  ].filter(Boolean)
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
 app.use(express.json());
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
