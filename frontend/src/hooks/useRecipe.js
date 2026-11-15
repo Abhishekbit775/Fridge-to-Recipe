@@ -5,6 +5,7 @@ export function useRecipe() {
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
   const [error, setError] = useState(null);
   const latestRequestId = useRef(null);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const fetchRecipe = useCallback(async (ingredients) => {
     // Generate a unique ID for this request to prevent stale responses overwriting newer ones
@@ -15,7 +16,7 @@ export function useRecipe() {
     setError(null);
 
     try {
-      const res = await fetch("/api/recipe", {
+      const res = await fetch(`${API_URL}/api/recipe`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ingredients, requestId }),
