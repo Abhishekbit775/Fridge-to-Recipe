@@ -113,7 +113,7 @@ app.post("/api/recipe", async (req, res) => {
 
   try {
     const completion = await groq.chat.completions.create({
-      model: "llama3-8b-8192",
+      model: "openai/gpt-oss-20b",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {
@@ -122,7 +122,7 @@ app.post("/api/recipe", async (req, res) => {
         },
       ],
       temperature: 0.7,
-      max_tokens: 2048,
+      max_completion_tokens: 2048,
     });
 
     const rawContent = completion.choices?.[0]?.message?.content;
@@ -150,18 +150,35 @@ app.post("/api/recipe", async (req, res) => {
     }
 
     return res.json({ recipe: validated, requestId });
-  } catch (err) {
-    if (err?.status === 401) {
-      return res.status(401).json({ error: "Invalid GROQ_API_KEY" });
-    }
-    if (err?.status === 429) {
-      return res.status(429).json({ error: "Rate limit hit — wait a moment and retry" });
-    }
-    console.error("Groq error:", err);
-    return res.status(502).json({ error: "AI request failed: " + (err.message || "unknown error") });
-  }
-});
+  
+} catch (err) {
+  console.error("========== GROQ ERROR ==========");
+  console.error("Name:", err.name);
+  console.error("Message:", err.message);
+  console.error("Status:", err.status);
+  console.error("Code:", err.code);
+  console.error("Cause:", err.cause);
+  console.error("Stack:", err.stack);
+  console.error("================================");
 
+  if (err?.status === 401) {
+    return res.status(401).json({
+      error: "Invalid GROQ_API_KEY"
+    });
+  }
+
+  if (err?.status === 429) {
+    return res.status(429).json({
+      error: "Rate limit exceeded. Please retry."
+    });
+  }
+
+  return res.status(502).json({
+    error: "AI request failed",
+    details: err.message || "Unknown error"
+  });
+}
+});
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
 const PORT = process.env.PORT || 3001;
